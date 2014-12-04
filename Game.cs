@@ -7,8 +7,23 @@ namespace TicTacToa
 {
     public class Game
     {
-        Board board = new Board();
-        Player p1 = new Player();
+        Board board;
+        Player p1;
+        Player p2;
+
+        public Game(Board board, Player player1, Player player2)
+        {
+            this.board = board;
+            p1 = player1;
+            p2 = player2;
+        }
+
+        public void NewGame()
+        {
+            p1.Moves.Clear();
+            p2.Moves.Clear();
+            board.Clear();
+        }
     }
 
     public class Player
@@ -25,6 +40,23 @@ namespace TicTacToa
         }
     }
 
+    public class AIPlayer
+    {
+        public List<int> Moves;
+        public List<int> OpponentMoves;
+        public AIPlayer()
+        {
+            OpponentMoves = new List<int>();
+            Moves = new List<int>();
+        }
+
+        public void GetNextMove()
+        {
+
+        }
+
+    }
+
     public class Board
     {
         public List<int> availableBox;
@@ -33,6 +65,10 @@ namespace TicTacToa
         public Board()
         {
             initBoard();   
+        }
+        public void Clear()
+        {
+            initBoard();
         }
 
         public void SetNextMove(int index)
