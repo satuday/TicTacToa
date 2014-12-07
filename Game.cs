@@ -28,9 +28,12 @@ namespace TicTacToa
 
     public class Player
     {
+        public string Name{get;set;}
         public List<int> Moves;
-        public Player()
+
+        public Player(string name = "Player1")
         {
+            Name = name;
             Moves = new List<int>();
         }
 
@@ -40,29 +43,23 @@ namespace TicTacToa
         }
     }
 
-    public class AIPlayer
-    {
-        public List<int> Moves;
-        public List<int> OpponentMoves;
-        public AIPlayer()
-        {
-            OpponentMoves = new List<int>();
-            Moves = new List<int>();
-        }
-
-        public void GetNextMove()
-        {
-
-        }
-
-    }
-
     public class Board
     {
-        public List<int> availableBox;
-        List<Tuple<int, int, int>> winners;        
+        List<Tuple<int, int, int>> winners;
+        Player p1;
+        Player p2;
+        bool isP1Turn = true;
+
+        List<int> p1Moves, p2Moves;
+
+        public Board(Player player1, Player player2)
+        {
+            p1Moves = new List<int>();
+            p1 = player1;
+            p2 = player2;
+        }
         
-        public Board()
+        public Board():this(new Player(), new Player())
         {
             initBoard();   
         }
@@ -73,12 +70,8 @@ namespace TicTacToa
 
         public void SetNextMove(int index)
         {
-            availableBox.Remove(index);
-        }
-
-        public List<int> GetAvailableBox()
-        {
-            return availableBox;
+            isP1Turn = !isP1Turn;
+            ///availableBox.Remove(index);
         }
 
         public bool IsWinner(int[] boxes)
@@ -93,18 +86,7 @@ namespace TicTacToa
 
         void initBoard()
         {
-            availableBox = new List<int>();
-            availableBox.Add(1);
-            availableBox.Add(2);
-            availableBox.Add(3);
-            availableBox.Add(4);
-            availableBox.Add(5);
-            availableBox.Add(6);
-            availableBox.Add(7);
-            availableBox.Add(8);
-            availableBox.Add(9);
-
-            winners = new List<Tuple<int, int, int>>(9);
+            winners = new List<Tuple<int, int, int>>(8);
             winners.Add(new Tuple<int, int, int>(1, 2, 3));
             winners.Add(new Tuple<int, int, int>(4, 5, 6));
             winners.Add(new Tuple<int, int, int>(7, 8, 9));
@@ -115,6 +97,52 @@ namespace TicTacToa
 
             winners.Add(new Tuple<int, int, int>(1, 5, 9));       
             winners.Add(new Tuple<int, int, int>(3, 5, 7));
+        }
+
+        public bool HasWinner(out Player winner)
+        {
+            winner = null;
+            foreach (var t in winners)
+            {
+                if (p1.Moves.Contains(t.Item1) && p1.Moves.Contains(t.Item2) && p1.Moves.Contains(t.Item3))
+                {
+                    winner = p1;
+                    return true;
+                }
+                else if (p2.Moves.Contains(t.Item1) && p2.Moves.Contains(t.Item2) && p2.Moves.Contains(t.Item3))
+                {
+                    winner = p2;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public int GetNextBestMove()
+        {
+            return 0;
+        }
+    }
+
+    public class TicTacToaBoard
+    {
+        int[] boxes;
+
+        public TicTacToaBoard()
+        {
+            boxes = new int[9];
+        }
+
+        public int this[int i]
+        {
+            get
+            {
+                return boxes[i];
+            }
+            set
+            {
+                boxes[i] = value;
+            }
         }
     }
 }
