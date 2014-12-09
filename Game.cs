@@ -124,13 +124,132 @@ namespace TicTacToa
         }
     }
 
+    public static class Helper
+    {
+        static List<Tuple<int, int, int>> winners;
+
+        static Helper()
+        {
+            winners = new List<Tuple<int, int, int>>(8);
+            winners.Add(new Tuple<int, int, int>(0, 1, 2));
+            winners.Add(new Tuple<int, int, int>(3, 4, 5));
+            winners.Add(new Tuple<int, int, int>(6, 7, 8));
+
+            winners.Add(new Tuple<int, int, int>(0, 3, 6));
+            winners.Add(new Tuple<int, int, int>(1, 4, 7));
+            winners.Add(new Tuple<int, int, int>(2, 5, 8));
+
+            winners.Add(new Tuple<int, int, int>(0, 4, 8));
+            winners.Add(new Tuple<int, int, int>(2, 4, 6));
+        }
+
+        public static bool HasWinner(TicTacToaBoard board, out bool winnerIsX)
+        {
+            winnerIsX = false;
+            if (board.xPositions.Count < 3 && board.oPositions.Count < 3)
+                return false;
+            foreach (var t in winners)
+            {
+                if (board.xPositions.Contains(t.Item1) && board.xPositions.Contains(t.Item2) && board.xPositions.Contains(t.Item3))
+                {
+                    winnerIsX = true;
+                    return true;
+                }
+                else if (board.oPositions.Contains(t.Item1) && board.oPositions.Contains(t.Item2) && board.oPositions.Contains(t.Item3))
+                {
+                    return true;
+                }
+
+            }
+            return false;
+        }
+
+        public static int GetBestMove(TicTacToaBoard board, bool forX)
+        {
+            int i = 0;
+            var boxes = board.GetEmptyBoxex();
+            foreach (var box in boxes)
+            {
+                var nextBoard = board.GetBoardAfterNewMove(box, forX);
+                bool winnerIsX;
+                if (HasWinner(nextBoard, out winnerIsX))
+                {
+                    if (forX && winnerIsX)
+                    {
+                        return box;
+                    }
+                    //else
+                    //{
+                    //    return box;
+                    //}
+                }
+                var t = GetBestMove(nextBoard, !forX);
+                if (t > 0)
+                    i = t;
+
+            }
+            return i;
+        }
+    }
+
     public class TicTacToaBoard
     {
         int[] boxes;
 
+        public List<int> xPositions { get 
+        {
+            List<int> os = new List<int>();
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                if (boxes[i] == 1)
+                    os.Add(i);
+            }
+            return os;
+        } }
+        public List<int> oPositions { get 
+        {
+            List<int> os = new List<int>();
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                if (boxes[i] == -1)
+                    os.Add(i);
+            }
+            return os;
+        }}
+
+        public void Clear()
+        {
+            init();
+        }
+
+        void init()
+        {
+            boxes[0] = 0;
+            boxes[1] = 0;
+            boxes[2] = 0;
+            boxes[3] = 0;
+            boxes[4] = 0;
+            boxes[5] = 0;
+            boxes[6] = 0;
+            boxes[7] = 0;
+            boxes[8] = 0;
+        }
+
         public TicTacToaBoard()
         {
             boxes = new int[9];
+            init();
+        }
+
+        public List<int> GetEmptyBoxex()
+        {
+            List<int> os = new List<int>();
+            for (int i = 0; i < boxes.Length; i++)
+            {
+                if (boxes[i] == 0)
+                    os.Add(i);
+            }
+            return os;
         }
 
         public int this[int i]
@@ -143,6 +262,14 @@ namespace TicTacToa
             {
                 boxes[i] = value;
             }
+        }
+
+        public TicTacToaBoard GetBoardAfterNewMove(int boxIndex, bool forX)
+        {
+            TicTacToaBoard newBoard = new TicTacToaBoard();
+            newBoard.boxes = (int[])this.boxes.Clone();
+            newBoard[boxIndex] = forX ? 1 : -1;
+            return newBoard;
         }
     }
 }
