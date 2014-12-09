@@ -43,15 +43,15 @@ namespace TicTacToa.WinForm
                 if (isXturn)
                 {
                     pb.Image = p1.Value;
-                    tboard[Convert.ToInt16(pb.Tag)-1] = 1;
+                    tboard[Convert.ToInt16(pb.Tag) - 1] = (int)XO.X;
                 }
                 else
                 {
                     pb.Image = p2.Value;
-                    tboard[Convert.ToInt16(pb.Tag)-1] = -1;
+                    tboard[Convert.ToInt16(pb.Tag) - 1] = (int)XO.O;
                 }
                 bool winnerIsX = false;
-                if(Helper.HasWinner(tboard, out winnerIsX)) //if(board.HasWinner(out  winner))
+                if(Helper.HasWinner(tboard, out winnerIsX))
                 {
                     if (winnerIsX)
                     {
@@ -62,11 +62,13 @@ namespace TicTacToa.WinForm
                         MessageBox.Show("winner is " + player2.Name);
                     }
                     newGame();
+                    return;
                 }
-                else if (tboard.GetEmptyBoxex().Count == 0)
+                else if (tboard.GetEmptyBoxes().Count == 0)
                 {
                     MessageBox.Show("Draw");
                     newGame();
+                    return;
                 }
                 isXturn = !isXturn;
             }
@@ -93,8 +95,10 @@ namespace TicTacToa.WinForm
 
         private void button2_Click(object sender, EventArgs e)
         {
-            var i = Helper.GetBestMove(tboard, true);
-            label1.Text = i.ToString();
+            int p = -1;
+            p = Helper.GetBestMove(tboard);
+            label1.Text = p.ToString();
+
         }
     }
 }

@@ -164,37 +164,85 @@ namespace TicTacToa
             return false;
         }
 
-        public static int GetBestMove(TicTacToaBoard board, bool forX)
+        public static int GetBestMove(TicTacToaBoard board)
         {
-            int i = 0;
-            var boxes = board.GetEmptyBoxex();
+            int p = -1;
+            var boxes = board.GetEmptyBoxes();
+            int bestVal = 0;
             foreach (var box in boxes)
             {
-                var nextBoard = board.GetBoardAfterNewMove(box, forX);
-                bool winnerIsX;
-                if (HasWinner(nextBoard, out winnerIsX))
+                var tb = board.GetBoardAfterNewMove(box);
+                var val = GetMinimax(tb, true);
+                if (val > bestVal)
                 {
-                    if (forX && winnerIsX)
-                    {
-                        return box;
-                    }
-                    //else
-                    //{
-                    //    return box;
-                    //}
+                    bestVal = val;
+                    p = box;
                 }
-                var t = GetBestMove(nextBoard, !forX);
-                if (t > 0)
-                    i = t;
+            }
+            return p;
+        }
+        
+
+        public static int GetMinimax(TicTacToaBoard board, bool forX)
+        {
+            bool xWin;
+            if (HasWinner(board, out xWin))
+            {
+                if (xWin)
+                {
+                    return 10 - board.Depth;
+                }
+                else
+                {
+                    return -10 - board.Depth;
+                }
+            }
+
+            var boxes = board.GetEmptyBoxes();
+
+            if (forX)
+            {
+                int bestValue = int.MinValue;
+                foreach (var box in boxes)
+                {
+                    var nextBoard = board.GetBoardAfterNewMove(box);
+                    var value = GetMinimax(nextBoard, false);
+                                        
+                    bestValue = Math.Max(value, bestValue);
+                    System.Diagnostics.Debug.WriteLine(nextBoard.Depth.ToString() + ":" + bestValue.ToString());
+                }
+                return bestValue;
+            }
+            else
+            {
+                int bestValue = int.MaxValue;
+                foreach (var box in boxes)
+                {
+                    var nextBoard = board.GetBoardAfterNewMove(box);
+                    var value = GetMinimax(nextBoard, true);
+                    bestValue = Math.Min(value, bestValue);
+                    System.Diagnostics.Debug.WriteLine(nextBoard.Depth.ToString() + ":" + bestValue.ToString());
+                }
+                return bestValue;
 
             }
-            return i;
+
+
+
         }
+    }
+
+    public enum XO
+    {
+        X = 1,
+        O = -1
     }
 
     public class TicTacToaBoard
     {
         int[] boxes;
+        bool isXturn = false;
+        public int Depth { get; set; }           
 
         public List<int> xPositions { get 
         {
@@ -241,7 +289,7 @@ namespace TicTacToa
             init();
         }
 
-        public List<int> GetEmptyBoxex()
+        public List<int> GetEmptyBoxes()
         {
             List<int> os = new List<int>();
             for (int i = 0; i < boxes.Length; i++)
@@ -264,11 +312,18 @@ namespace TicTacToa
             }
         }
 
-        public TicTacToaBoard GetBoardAfterNewMove(int boxIndex, bool forX)
+        public bool HasWinner(out bool xWin)
+        {
+            return Helper.HasWinner(this, out xWin);
+        }
+
+        public TicTacToaBoard GetBoardAfterNewMove(int boxIndex)
         {
             TicTacToaBoard newBoard = new TicTacToaBoard();
             newBoard.boxes = (int[])this.boxes.Clone();
-            newBoard[boxIndex] = forX ? 1 : -1;
+            newBoard.isXturn = !this.isXturn;
+            newBoard.Depth = this.Depth + 1;
+            newBoard[boxIndex] = newBoard.isXturn ? 1 : -1;
             return newBoard;
         }
     }
