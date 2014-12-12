@@ -16,8 +16,6 @@ namespace TicTacToa.WinForm
         KeyValuePair<Player, Image> p1;
         KeyValuePair<Player, Image> p2;
 
-        bool isXturn = true;
-
         TicTacToaBoard tboard;
 
         public Form1()
@@ -29,9 +27,27 @@ namespace TicTacToa.WinForm
             player1 = new Player("Player1");
             player2 = new Player("Player2");
             newGame();
+            for(int i = 0; i < flowLayoutPanel1.Controls.Count; i++)
+            {
+                if (flowLayoutPanel1.Controls[i] is PictureBox)
+                {
+                    var pb = flowLayoutPanel1.Controls[i] as PictureBox;
+                    pb.Tag = i;
+                    pb.Click += pictureBox_Click;
+                }
+            }
+        }
+
+        void setX(int index)
+        {
             foreach (PictureBox pb in flowLayoutPanel1.Controls)
             {
-                pb.Click += pictureBox_Click;
+                if(Convert.ToInt16(pb.Tag) == index)
+                {
+                    pictureBox_Click(pb, new EventArgs());
+                    break;
+                }
+
             }
         }
 
@@ -40,16 +56,22 @@ namespace TicTacToa.WinForm
             PictureBox pb = sender as PictureBox;
             if (pb.Image == null)
             {
-                if (isXturn)
+                if (tboard.CurrentPlayer == XO.X)
                 {
                     pb.Image = p1.Value;
-                    tboard[Convert.ToInt16(pb.Tag) - 1] = (int)XO.X;
+                    tboard[Convert.ToInt16(pb.Tag)] = (int)XO.X;
+
                 }
                 else
                 {
                     pb.Image = p2.Value;
-                    tboard[Convert.ToInt16(pb.Tag) - 1] = (int)XO.O;
+                    tboard[Convert.ToInt16(pb.Tag)] = (int)XO.O;
+                    var b = Helper.GetBestMove(tboard);
+                    label1.Text = "Best for X:" + b;
+                    //setX(b);
+
                 }
+                tboard.CurrentPlayer = (XO)(Convert.ToInt16(tboard.CurrentPlayer) * -1);
                 bool winnerIsX = false;
                 if(Helper.HasWinner(tboard, out winnerIsX))
                 {
@@ -70,14 +92,11 @@ namespace TicTacToa.WinForm
                     newGame();
                     return;
                 }
-                isXturn = !isXturn;
             }
-            //pb.Image = global::TicTacToa.WinForm.Properties.Resources.
         }
 
         void newGame()
         {
-            isXturn = false;
             tboard.Clear();
             p1 = new KeyValuePair<Player, Image>(player1, Properties.Resources.x);
             p2 = new KeyValuePair<Player, Image>(player2, Properties.Resources.o);
@@ -99,6 +118,11 @@ namespace TicTacToa.WinForm
             p = Helper.GetBestMove(tboard);
             label1.Text = p.ToString();
 
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            label1.Text = "Best for X:" + Helper.GetBestMove(tboard);
         }
     }
 }

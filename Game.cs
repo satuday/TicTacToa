@@ -144,7 +144,7 @@ namespace TicTacToa
         }
 
         public static bool HasWinner(TicTacToaBoard board, out bool winnerIsX)
-        {
+        {           
             winnerIsX = false;
             if (board.xPositions.Count < 3 && board.oPositions.Count < 3)
                 return false;
@@ -157,11 +157,46 @@ namespace TicTacToa
                 }
                 else if (board.oPositions.Contains(t.Item1) && board.oPositions.Contains(t.Item2) && board.oPositions.Contains(t.Item3))
                 {
+                    winnerIsX = false;
                     return true;
                 }
 
             }
             return false;
+        }
+
+        public static int GetBoardValue(TicTacToaBoard board)
+        {
+            int val = 0;
+            var xPos = board.xPositions;
+            var oPos = board.oPositions;
+            foreach (var t in winners)
+            {
+                if (xPos.Contains(t.Item1) && xPos.Contains(t.Item2) && xPos.Contains(t.Item3))
+                {
+                    return 100;
+                }
+                else if (oPos.Contains(t.Item1) && oPos.Contains(t.Item2) && oPos.Contains(t.Item3))
+                {
+                    return -100;
+                }
+
+                if (xPos.Contains(t.Item1) && xPos.Contains(t.Item2))
+                    val +=10;
+                if (xPos.Contains(t.Item2) && xPos.Contains(t.Item3))
+                    val +=10;
+                if (xPos.Contains(t.Item3) && xPos.Contains(t.Item1))
+                    val = +10;
+
+                if (oPos.Contains(t.Item1) && oPos.Contains(t.Item2))
+                    val -= 10;
+                if (oPos.Contains(t.Item2) && oPos.Contains(t.Item3))
+                    val -= -10;
+                if (oPos.Contains(t.Item3) && oPos.Contains(t.Item1))
+                    val -= 10;
+            }
+
+            return val;
         }
 
         public static int GetBestMove(TicTacToaBoard board)
@@ -172,84 +207,104 @@ namespace TicTacToa
             foreach (var box in boxes)
             {
                 var tb = board.GetBoardAfterNewMove(box);
-                var val = GetMinimax(tb, true);
+                var val = GetMinimax(tb, 10, true);
+                System.Diagnostics.Debug.WriteLine(box.ToString() + ":" + val.ToString());
                 if (val > bestVal)
                 {
                     bestVal = val;
                     p = box;
-                }
+                }               
             }
             return p;
         }
-        
 
-        public static int GetMinimax(TicTacToaBoard board, bool forX)
+//        function minimax(node, depth, maximizingPlayer)
+//    if depth = 0 or node is a terminal node
+//        return the heuristic value of node
+//    if maximizingPlayer
+//        bestValue := -∞
+//        for each child of node
+//            val := minimax(child, depth - 1, FALSE)
+//            bestValue := max(bestValue, val)
+//        return bestValue
+//    else
+//        bestValue := +∞
+//        for each child of node
+//            val := minimax(child, depth - 1, TRUE)
+//            bestValue := min(bestValue, val)
+//        return bestValue
+
+//(* Initial call for maximizing player *)
+//minimax(origin, depth, TRUE)
+
+
+        public static int GetMinimax(TicTacToaBoard board, int depth, bool maximizingPlayer)
         {
             bool xWin;
-            if (HasWinner(board, out xWin))
+            //if (HasWinner(board, out xWin))
+            //{
+            //    if (board.CurrentPlayer == XO.X && xWin)                
+            //        return 10 - depth;                
+            //    else                
+            //        return depth -10;                
+            //}
+
+            if(HasWinner(board, out xWin))
             {
-                if (xWin)
-                {
-                    return 10 - board.Depth;
-                }
-                else
-                {
-                    return -10 - board.Depth;
-                }
+                return GetBoardValue(board);
             }
 
             var boxes = board.GetEmptyBoxes();
+            if (boxes.Count == 0 || depth == 0)
+                return GetBoardValue(board);
 
-            if (forX)
+
+            if (boxes.Count == 0)
+                return 0;
+
+            if (maximizingPlayer)
             {
-                int bestValue = int.MinValue;
+                int bestVal = -100;
                 foreach (var box in boxes)
                 {
-                    var nextBoard = board.GetBoardAfterNewMove(box);
-                    var value = GetMinimax(nextBoard, false);
-                                        
-                    bestValue = Math.Max(value, bestValue);
-                    System.Diagnostics.Debug.WriteLine(nextBoard.Depth.ToString() + ":" + bestValue.ToString());
+                    var val = GetMinimax(board.GetBoardAfterNewMove(box), depth - 1, false);
+                    bestVal = Math.Max(bestVal, val);
                 }
-                return bestValue;
+                return bestVal;
             }
             else
             {
-                int bestValue = int.MaxValue;
+                int bestVal = 100;
                 foreach (var box in boxes)
                 {
-                    var nextBoard = board.GetBoardAfterNewMove(box);
-                    var value = GetMinimax(nextBoard, true);
-                    bestValue = Math.Min(value, bestValue);
-                    System.Diagnostics.Debug.WriteLine(nextBoard.Depth.ToString() + ":" + bestValue.ToString());
+                    var val = GetMinimax(board.GetBoardAfterNewMove(box), depth - 1, true);
+                    bestVal = Math.Min(bestVal, val);
                 }
-                return bestValue;
-
+                return bestVal;
             }
-
-
-
         }
     }
 
     public enum XO
     {
         X = 1,
-        O = -1
+        O = -1,
+        Empty = 0
     }
 
     public class TicTacToaBoard
     {
         int[] boxes;
-        bool isXturn = false;
-        public int Depth { get; set; }           
+        //public bool isXturn = false;
+        public int Depth { get; set; }
+        public XO CurrentPlayer { get; set; }
 
         public List<int> xPositions { get 
         {
             List<int> os = new List<int>();
             for (int i = 0; i < boxes.Length; i++)
             {
-                if (boxes[i] == 1)
+                if (boxes[i] == (int)XO.X)
                     os.Add(i);
             }
             return os;
@@ -259,7 +314,7 @@ namespace TicTacToa
             List<int> os = new List<int>();
             for (int i = 0; i < boxes.Length; i++)
             {
-                if (boxes[i] == -1)
+                if (boxes[i] == (int)XO.O)
                     os.Add(i);
             }
             return os;
@@ -285,6 +340,7 @@ namespace TicTacToa
 
         public TicTacToaBoard()
         {
+            CurrentPlayer = XO.O;
             boxes = new int[9];
             init();
         }
@@ -308,6 +364,7 @@ namespace TicTacToa
             }
             set
             {
+                this.CurrentPlayer = value > 0 ? XO.O : XO.X;
                 boxes[i] = value;
             }
         }
@@ -320,10 +377,10 @@ namespace TicTacToa
         public TicTacToaBoard GetBoardAfterNewMove(int boxIndex)
         {
             TicTacToaBoard newBoard = new TicTacToaBoard();
+            //newBoard.CurrentPlayer = (XO)(Convert.ToInt16(this.CurrentPlayer) * -1);
             newBoard.boxes = (int[])this.boxes.Clone();
-            newBoard.isXturn = !this.isXturn;
             newBoard.Depth = this.Depth + 1;
-            newBoard[boxIndex] = newBoard.isXturn ? 1 : -1;
+            newBoard[boxIndex] = (int)this.CurrentPlayer;
             return newBoard;
         }
     }
