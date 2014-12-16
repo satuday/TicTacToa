@@ -165,6 +165,45 @@ namespace TicTacToa
             return false;
         }
 
+        public static int GetBoardValue2(TicTacToaBoard board)
+        {
+            int i = 0;
+            foreach (var line in winners)
+            {
+                i += getLineValue(new XO[] { board[line.Item1], board[line.Item2], board[line.Item3] });
+            }
+
+            return i;
+        }
+
+        static int getLineValue(XO[] line)
+        {
+            if (line[0] == XO.X && line[1] == XO.X && line[2] == XO.X)
+            {
+                return 100;
+            }
+            else if (line[0] == XO.O && line[1] == XO.O && line[2] == XO.O)
+            {
+                return -100;
+            }
+
+            if ((line[0] == XO.X && line[1] == XO.X && line[2] == XO.Empty) ||
+                (line[0] == XO.X && line[1] == XO.Empty && line[2] == XO.X) ||
+                (line[0] == XO.Empty && line[1] == XO.X && line[2] == XO.X))
+            {
+                return 10;
+            }
+            else if ((line[0] == XO.O && line[1] == XO.O && line[2] == XO.Empty) ||
+                    (line[0] == XO.O && line[1] == XO.Empty && line[2] == XO.O) ||
+                    (line[0] == XO.Empty && line[1] == XO.O && line[2] == XO.O))
+            {
+                return -10;
+            }
+
+            return 0;
+
+        }
+
         public static int GetBoardValue(TicTacToaBoard board)
         {
             int val = 0;
@@ -203,11 +242,12 @@ namespace TicTacToa
         {
             int p = -1;
             var boxes = board.GetEmptyBoxes();
-            int bestVal = 0;
+            int bestVal = -100;
+
             foreach (var box in boxes)
             {
                 var tb = board.GetBoardAfterNewMove(box);
-                var val = GetMinimax(tb, 10, true);
+                var val = GetMinimax(tb, 10, false);
                 System.Diagnostics.Debug.WriteLine(box.ToString() + ":" + val.ToString());
                 if (val > bestVal)
                 {
@@ -215,59 +255,27 @@ namespace TicTacToa
                     p = box;
                 }               
             }
+            System.Diagnostics.Debug.WriteLine(" ");
             return p;
         }
-
-//        function minimax(node, depth, maximizingPlayer)
-//    if depth = 0 or node is a terminal node
-//        return the heuristic value of node
-//    if maximizingPlayer
-//        bestValue := -∞
-//        for each child of node
-//            val := minimax(child, depth - 1, FALSE)
-//            bestValue := max(bestValue, val)
-//        return bestValue
-//    else
-//        bestValue := +∞
-//        for each child of node
-//            val := minimax(child, depth - 1, TRUE)
-//            bestValue := min(bestValue, val)
-//        return bestValue
-
-//(* Initial call for maximizing player *)
-//minimax(origin, depth, TRUE)
-
 
         public static int GetMinimax(TicTacToaBoard board, int depth, bool maximizingPlayer)
         {
             bool xWin;
-            //if (HasWinner(board, out xWin))
-            //{
-            //    if (board.CurrentPlayer == XO.X && xWin)                
-            //        return 10 - depth;                
-            //    else                
-            //        return depth -10;                
-            //}
-
-            if(HasWinner(board, out xWin))
-            {
-                return GetBoardValue(board);
-            }
-
             var boxes = board.GetEmptyBoxes();
-            if (boxes.Count == 0 || depth == 0)
-                return GetBoardValue(board);
 
-
-            if (boxes.Count == 0)
-                return 0;
+            if(HasWinner(board, out xWin) || depth == 0 || boxes.Count == 0)
+            {
+                return GetBoardValue2(board);
+            }
 
             if (maximizingPlayer)
             {
                 int bestVal = -100;
                 foreach (var box in boxes)
                 {
-                    var val = GetMinimax(board.GetBoardAfterNewMove(box), depth - 1, false);
+                    var b= board.GetBoardAfterNewMove(box);
+                    var val = GetMinimax(b, depth - 1, false);
                     bestVal = Math.Max(bestVal, val);
                 }
                 return bestVal;
@@ -277,7 +285,8 @@ namespace TicTacToa
                 int bestVal = 100;
                 foreach (var box in boxes)
                 {
-                    var val = GetMinimax(board.GetBoardAfterNewMove(box), depth - 1, true);
+                    var b = board.GetBoardAfterNewMove(box);
+                    var val = GetMinimax(b, depth - 1, true);
                     bestVal = Math.Min(bestVal, val);
                 }
                 return bestVal;
@@ -294,7 +303,7 @@ namespace TicTacToa
 
     public class TicTacToaBoard
     {
-        int[] boxes;
+        XO[] boxes;
         //public bool isXturn = false;
         public int Depth { get; set; }
         public XO CurrentPlayer { get; set; }
@@ -304,7 +313,7 @@ namespace TicTacToa
             List<int> os = new List<int>();
             for (int i = 0; i < boxes.Length; i++)
             {
-                if (boxes[i] == (int)XO.X)
+                if (boxes[i] == XO.X)
                     os.Add(i);
             }
             return os;
@@ -314,7 +323,7 @@ namespace TicTacToa
             List<int> os = new List<int>();
             for (int i = 0; i < boxes.Length; i++)
             {
-                if (boxes[i] == (int)XO.O)
+                if (boxes[i] == XO.O)
                     os.Add(i);
             }
             return os;
@@ -341,7 +350,7 @@ namespace TicTacToa
         public TicTacToaBoard()
         {
             CurrentPlayer = XO.O;
-            boxes = new int[9];
+            boxes = new XO[9];
             init();
         }
 
@@ -356,7 +365,7 @@ namespace TicTacToa
             return os;
         }
 
-        public int this[int i]
+        public XO this[int i]
         {
             get
             {
@@ -378,9 +387,9 @@ namespace TicTacToa
         {
             TicTacToaBoard newBoard = new TicTacToaBoard();
             //newBoard.CurrentPlayer = (XO)(Convert.ToInt16(this.CurrentPlayer) * -1);
-            newBoard.boxes = (int[])this.boxes.Clone();
+            newBoard.boxes = (XO[])this.boxes.Clone();
             newBoard.Depth = this.Depth + 1;
-            newBoard[boxIndex] = (int)this.CurrentPlayer;
+            newBoard[boxIndex] = this.CurrentPlayer;
             return newBoard;
         }
     }

@@ -59,19 +59,19 @@ namespace TicTacToa.WinForm
                 if (tboard.CurrentPlayer == XO.X)
                 {
                     pb.Image = p1.Value;
-                    tboard[Convert.ToInt16(pb.Tag)] = (int)XO.X;
+                    tboard[Convert.ToInt16(pb.Tag)] = XO.X;
 
                 }
                 else
                 {
                     pb.Image = p2.Value;
-                    tboard[Convert.ToInt16(pb.Tag)] = (int)XO.O;
+                    tboard[Convert.ToInt16(pb.Tag)] = XO.O;
                     var b = Helper.GetBestMove(tboard);
                     label1.Text = "Best for X:" + b;
-                    //setX(b);
+                    setX(b);
 
                 }
-                tboard.CurrentPlayer = (XO)(Convert.ToInt16(tboard.CurrentPlayer) * -1);
+                //tboard.CurrentPlayer = (XO)(Convert.ToInt16(tboard.CurrentPlayer) * -1);
                 bool winnerIsX = false;
                 if(Helper.HasWinner(tboard, out winnerIsX))
                 {
@@ -98,6 +98,7 @@ namespace TicTacToa.WinForm
         void newGame()
         {
             tboard.Clear();
+            tboard.CurrentPlayer = XO.O;
             p1 = new KeyValuePair<Player, Image>(player1, Properties.Resources.x);
             p2 = new KeyValuePair<Player, Image>(player2, Properties.Resources.o);
             foreach (PictureBox pb in flowLayoutPanel1.Controls)
