@@ -11,10 +11,8 @@ namespace TicTacToa.WinForm
 {
     public partial class Form1 : Form
     {
-        TicTacToa.Player player1;
-        TicTacToa.Player player2;
-        KeyValuePair<Player, Image> p1;
-        KeyValuePair<Player, Image> p2;
+        KeyValuePair<XO, Image> p1;
+        KeyValuePair<XO, Image> p2;
 
         TicTacToaBoard tboard;
 
@@ -24,8 +22,6 @@ namespace TicTacToa.WinForm
 
             tboard = new TicTacToaBoard();
 
-            player1 = new Player("Player1");
-            player2 = new Player("Player2");
             newGame();
             for(int i = 0; i < flowLayoutPanel1.Controls.Count; i++)
             {
@@ -66,22 +62,21 @@ namespace TicTacToa.WinForm
                 {
                     pb.Image = p2.Value;
                     tboard[Convert.ToInt16(pb.Tag)] = XO.O;
-                    var b = Helper.GetBestMove(tboard);
+                    var b = AI.GetBestMove(tboard);
                     label1.Text = "Best for X:" + b;
                     setX(b);
 
                 }
-                //tboard.CurrentPlayer = (XO)(Convert.ToInt16(tboard.CurrentPlayer) * -1);
                 bool winnerIsX = false;
-                if(Helper.HasWinner(tboard, out winnerIsX))
+                if(AI.HasWinner(tboard, out winnerIsX))
                 {
                     if (winnerIsX)
                     {
-                        MessageBox.Show("winner is " + player1.Name);
+                        MessageBox.Show("winner is " + p1.Key);
                     }
                     else
                     {
-                        MessageBox.Show("winner is " + player2.Name);
+                        MessageBox.Show("winner is " + p2.Key);
                     }
                     newGame();
                     return;
@@ -99,8 +94,8 @@ namespace TicTacToa.WinForm
         {
             tboard.Clear();
             tboard.CurrentPlayer = XO.O;
-            p1 = new KeyValuePair<Player, Image>(player1, Properties.Resources.x);
-            p2 = new KeyValuePair<Player, Image>(player2, Properties.Resources.o);
+            p1 = new KeyValuePair<XO, Image>(XO.X, Properties.Resources.x);
+            p2 = new KeyValuePair<XO, Image>(XO.O, Properties.Resources.o);
             foreach (PictureBox pb in flowLayoutPanel1.Controls)
             {
                 pb.Image = null;
@@ -113,17 +108,9 @@ namespace TicTacToa.WinForm
 
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            int p = -1;
-            p = Helper.GetBestMove(tboard);
-            label1.Text = p.ToString();
-
-        }
-
         private void button2_Click_1(object sender, EventArgs e)
         {
-            label1.Text = "Best for X:" + Helper.GetBestMove(tboard);
+            label1.Text = "Best for X:" + AI.GetBestMove(tboard);
         }
     }
 }
