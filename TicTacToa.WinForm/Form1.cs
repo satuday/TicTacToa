@@ -58,13 +58,13 @@ namespace TicTacToa.WinForm
                 {
                     pb.Image = p2.Value;
                     tboard[Convert.ToInt16(pb.Tag)] = XO.O;
-                    var b = AI.GetBestMove(tboard);
+                    var b = Helper.GetBestMove(tboard);
                     label1.Text = "Best for X:" + b;
                     setX(b);
 
                 }
                 bool winnerIsX = false;
-                if(AI.HasWinner(tboard, out winnerIsX))
+                if (Helper.HasWinner(tboard, out winnerIsX))
                 {
                     if (winnerIsX)
                     {
@@ -106,7 +106,7 @@ namespace TicTacToa.WinForm
 
         private void button2_Click_1(object sender, EventArgs e)
         {
-            label1.Text = "Best for X:" + AI.GetBestMove(tboard);
+            label1.Text = "Best for X:" + Helper.GetBestMove(tboard);
         }
     }
 }
